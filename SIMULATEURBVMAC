@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur BVMAC - Backtesting Réinvestissement des Dividendes</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bvmac: {
+                            beige: '#FDFBF7',
+                            cardBeige: '#F5EFEB',
+                            borderBeige: '#EFE6DD',
+                            gold: '#D4AF37',
+                            goldHover: '#B8860B',
+                            goldDark: '#996515',
+                            maroon: '#4A2E2B',
+                            maroonDark: '#2C1614',
+                            maroonLight: '#6B423D',
+                            textDark: '#2C2C2C'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FDFBF7;
+            color: #2C2C2C;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .gold-gradient {
+            background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+        }
+        .maroon-gradient {
+            background: linear-gradient(135deg, #4A2E2B 0%, #2C1614 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 4px 15px rgba(74, 46, 43, 0.05);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F5EFEB;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D4AF37;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #B8860B;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Top Header Branding Bar -->
+    <header class="maroon-gradient text-white border-b-4 border-bvmac-gold shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-bvmac-gold flex items-center justify-center text-bvmac-maroon font-bold text-xl border-2 border-white shadow">
+                    BVMAC
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight">BOURSE DES VALEURS MOBILIÈRES DE L'AFRIQUE CENTRALE</h1>
+                    <p class="text-xs text-bvmac-gold uppercase tracking-widest font-semibold">Plateforme Régionale de Cotation - Douala, CEMAC</p>
+                </div>
+            </div>
+            <div class="text-right flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-lg border border-bvmac-gold/30 text-xs">
+                <i class="fa-solid fa-chart-line text-bvmac-gold text-base">
+</i>
+                <span>Module Numérique de Simulation Académique & Professionnel</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow space-y-8">
+
+        <!-- Welcome Banner & Simulator Introduction -->
+        <section class="bg-bvmac-cardBeige border border-bvmac-borderBeige rounded-xl p-6 sm:p-8 card-shadow relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-bvmac-gold/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="relative z-10 space-y-4">
+                <div class="flex items-center gap-2 text-bvmac-maroon font-bold text-xs uppercase tracking-wider bg-bvmac-gold/20 px-3 py-1 rounded-full w-fit border border-bvmac-gold/40">
+                    <i class="fa-solid fa-graduation-cap"></i> Modélisation Financière & Backtesting (2015 - 2025)
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-bvmac-maroon">
+                    Simulateur de Stratégie de Réinvestissement Automatique des Dividendes à la BVMAC
+                </h2>
+                <p class="text-gray-700 leading-relaxed text-sm sm:text-base max-w-5xl">
+                    Bienvenue sur la plateforme dynamique d'évaluation prospective et rétrospective du marché des actions de la Zone CEMAC. Ce simulateur permet de mesurer empiriquement l'impact du réinvestissement automatique des dividendes (<strong>Plan DRIP</strong>) par rapport à une stratégie passive de rétention des liquidités. L'algorithme intègre la totalité des frictions microstructures du marché régional : la fiscalité libératoire de l'<strong>IRCM (16,5%)</strong>, les commissions d'intermédiation des SGI (<strong>1,5%</strong>), la contrainte d'acquisition par <strong>nombres entiers d'actions</strong>, et le phénomène d'encaisse oisive (<em>cash drag</em>).
+                </p>
+                
+                <!-- Information Guide Pill Bar -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                    <div class="flex items-start gap-3 bg-white p-3 rounded-lg border border-bvmac-borderBeige text-xs">
+                        <i class="fa-solid fa-shield-halved text-bvmac-gold text-lg mt-0.5"></i>
+                        <div>
+                            <span class="font-bold text-bvmac-maroon block">Transparence Fiscale</span>
+                            Prélèvement automatique à la source de l'IRCM à 16,5% sur chaque distribution.
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-white p-3 rounded-lg border border-bvmac-borderBeige text-xs">
+                        <i class="fa-solid fa-[#D4AF37] fa-coins text-bvmac-gold text-lg mt-0.5"></i>
+                        <div>
+                            <span class="font-bold text-bvmac-maroon block">Frictions de Courtage</span>
+                            Application des commissions réglementées de 1,5% HT sur les ordres d'achat.
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 bg-white p-3 rounded-lg border border-bvmac-borderBeige text-xs">
+                        <i class="fa-solid fa-cubes text-bvmac-gold text-lg mt-0.5"></i>
+                        <div>
+                            <span class="font-bold text-bvmac-maroon block">Discrétisation Stricte</span>
+                            Acquisition obligatoire d'actions entières avec conservation des reliquats en cash.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Simulation Control Panel & Input Parameters -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Dynamic Controls Card -->
+            <div class="lg:col-span-1 bg-white border border-bvmac-borderBeige rounded-xl p-6 card-shadow space-y-6">
+                <div class="flex items-center justify-between border-b border-bvmac-borderBeige pb-4">
+                    <h3 class="text-lg font-bold text-bvmac-maroon flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-bvmac-gold"></i> Paramètres de Simulation
+                    </h3>
+                    <button onclick="resetDefaults()" class="text-xs text-bvmac-maroon hover:text-bvmac-gold underline font-semibold transition">
+                        Réinitialiser
+                    </button>
+                </div>
+
+                <form id="simulatorForm" class="space-y-4 text-sm" onsubmit="event.preventDefault(); runSimulation();">
+                    <!-- Capital Initial -->
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1" for="capitalInitial">Capital Initial Investi (FCFA)</label>
+                        <div class="relative">
+                            <input type="number" id="capitalInitial" value="10000000" step="100000" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded-lg px-3 py-2 text-bvmac-maroon font-bold focus:outline-none focus:ring-2 focus:ring-bvmac-gold">
+                            <span class="absolute right-3 top-2.5 text-xs text-gray-400 font-bold">XAF</span>
+                        </div>
+                    </div>
+
+                    <!-- Taux IRCM -->
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1" for="tauxIRCM">Taux d'Impôt IRCM (%)</label>
+                        <input type="number" id="tauxIRCM" value="16.5" step="0.1" min="0" max="50" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded-lg px-3 py-2 text-bvmac-maroon font-bold focus:outline-none focus:ring-2 focus:ring-bvmac-gold">
+                        <p class="text-[11px] text-gray-500 mt-1">Imposition libératoire à la source (CGI Cameroun/CEMAC).</p>
+                    </div>
+
+                    <!-- Frais de Courtage SGI -->
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1" for="fraisCourtage">Frais de Courtage SGI (%)</label>
+                        <input type="number" id="fraisCourtage" value="1.5" step="0.05" min="0" max="10" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded-lg px-3 py-2 text-bvmac-maroon font-bold focus:outline-none focus:ring-2 focus:ring-bvmac-gold">
+                        <p class="text-[11px] text-gray-500 mt-1">Commissions cumulées SGI, BVMAC & COSUMAF.</p>
+                    </div>
+
+                    <!-- Taux Sans Risque -->
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1" for="tauxSansRisque">Taux Sans Risque - BTA CEMAC (%)</label>
+                        <input type="number" id="tauxSansRisque" value="4.5" step="0.1" min="0" max="20" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded-lg px-3 py-2 text-bvmac-maroon font-bold focus:outline-none focus:ring-2 focus:ring-bvmac-gold">
+                        <p class="text-[11px] text-gray-500 mt-1">Rendement moyen des titres publics souverains à 5 ans.</p>
+                    </div>
+
+                    <!-- Taux de réinvestissement du dividende net -->
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1" for="tauxReinvest">Taux de Réinvestissement Net (%)</label>
+                        <select id="tauxReinvest" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded-lg px-3 py-2 text-bvmac-maroon font-bold focus:outline-none focus:ring-2 focus:ring-bvmac-gold">
+                            <option value="1.0" selected>100% (Réinvestissement Total - DRIP)</option>
+                            <option value="0.75">75% (Réinvestissement Important)</option>
+                            <option value="0.50">50% (Réinvestissement Partiel Équilibré)</option>
+                            <option value="0.25">25% (Réinvestissement Minimal)</option>
+                        </select>
+                    </div>
+
+                    <!-- Slippage / Délais -->
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1" for="delaiSlippage">Délai d'Exécution / Slippage</label>
+                        <select id="delaiSlippage" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded-lg px-3 py-2 text-bvmac-maroon font-bold focus:outline-none focus:ring-2 focus:ring-bvmac-gold">
+                            <option value="1" selected>1 Mois (Fenêtre standard)</option>
+                            <option value="2">2 Mois (Délai d'attente moyen)</option>
+                            <option value="3">3 Mois (Inertie sous-régionale forte)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full gold-gradient text-bvmac-maroon font-extrabold py-3 rounded-lg shadow-md hover:brightness-105 transition flex items-center justify-center gap-2 mt-4 text-base">
+                        <i class="fa-solid fa-play"></i> Lancer la Simulation
+                    </button>
+                </form>
+            </div>
+
+            <!-- Equity Portfolio Management & Universe Card -->
+            <div class="lg:col-span-2 bg-white border border-bvmac-borderBeige rounded-xl p-6 card-shadow space-y-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-bvmac-borderBeige pb-4 gap-2">
+                        <div>
+                            <h3 class="text-lg font-bold text-bvmac-maroon flex items-center gap-2">
+                                <i class="fa-solid fa-building-columns text-bvmac-gold"></i> Périmètre des Sociétés Cotées BVMAC
+                            </h3>
+                            <p class="text-xs text-gray-500">Intégration dynamique selon le calendrier d'introduction boursière historique.</p>
+                        </div>
+                        <button onclick="openStockModal()" class="bg-bvmac-maroon text-bvmac-gold text-xs font-bold px-3 py-2 rounded-lg hover:bg-bvmac-maroonLight transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Ajouter une Action
+                        </button>
+                    </div>
+
+                    <!-- Stock Table -->
+                    <div class="overflow-x-auto mt-4">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-bvmac-cardBeige text-bvmac-maroon uppercase font-bold border-b border-bvmac-borderBeige">
+                                    <th class="p-2.5">Société</th>
+                                    <th class="p-2.5">Secteur</th>
+                                    <th class="p-2.5">Cours Init (FCFA)</th>
+                                    <th class="p-2.5">Div. Brut (FCFA)</th>
+                                    <th class="p-2.5">Croissance Div.</th>
+                                    <th class="p-2.5">Cotation</th>
+                                    <th class="p-2.5 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockTableBody" class="divide-y divide-bvmac-borderBeige text-gray-800 font-medium">
+                                <!-- Dynamic rows generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-bvmac-beige border border-bvmac-borderBeige p-4 rounded-lg text-xs space-y-1">
+                    <span class="font-bold text-bvmac-maroon block"><i class="fa-solid fa-circle-info text-bvmac-gold"></i> Remarque d'Équipondération Dynamic (1/N) :</span>
+                    <p class="text-gray-600">Le capital initial et les rééquilibrages sont répartis à parts égales entre les actions disponibles à la date concernée pour éliminer tout biais d'anticipation ou de survivance.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Results Dashboard KPI Cards -->
+        <section class="space-y-4">
+            <h3 class="text-xl font-extrabold text-bvmac-maroon flex items-center gap-2">
+                <i class="fa-solid fa-square-poll-vertical text-bvmac-gold"></i> Indicateurs Clés de Performance & Risque (2015 - 2025)
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- KPI 1: Final Wealth Strategy B vs A -->
+                <div class="bg-white border-l-4 border-bvmac-gold p-5 rounded-xl card-shadow space-y-1">
+                    <span class="text-xs font-bold uppercase text-gray-500">Patrimoine Final (Stratégie B - DRIP)</span>
+                    <div id="kpiPatrimoineB" class="text-2xl font-black text-bvmac-maroon">-- FCFA</div>
+                    <div class="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-up"></i> <span id="kpiSurperf">--</span> vs Stratégie A (Cash)
+                    </div>
+                    <p id="kpiPatrimoineA" class="text-[11px] text-gray-500 pt-1 border-t border-gray-100">Stratégie A (Cash): -- FCFA</p>
+                </div>
+
+                <!-- KPI 2: CAGR -->
+                <div class="bg-white border-l-4 border-bvmac-maroon p-5 rounded-xl card-shadow space-y-1">
+                    <span class="text-xs font-bold uppercase text-gray-500">Taux Annualisé Composé (CAGR)</span>
+                    <div id="kpiCAGRB" class="text-2xl font-black text-bvmac-goldDark">-- %</div>
+                    <div class="text-xs font-semibold text-gray-600">
+                        Écart annuel net : <span id="kpiEcartCAGR" class="font-bold text-emerald-700">-- pts</span>
+                    </div>
+                    <p id="kpiCAGRA" class="text-[11px] text-gray-500 pt-1 border-t border-gray-100">Stratégie A: -- %</p>
+                </div>
+
+                <!-- KPI 3: Sharpe Ratio -->
+                <div class="bg-white border-l-4 border-bvmac-gold p-5 rounded-xl card-shadow space-y-1">
+                    <span class="text-xs font-bold uppercase text-gray-500">Ratio de Sharpe (Rendement / Risque)</span>
+                    <div id="kpiSharpeB" class="text-2xl font-black text-bvmac-maroon">--</div>
+                    <div class="text-xs font-semibold text-emerald-700">
+                        Surperformance ajustée du risque
+                    </div>
+                    <p id="kpiSharpeA" class="text-[11px] text-gray-500 pt-1 border-t border-gray-100">Stratégie A: --</p>
+                </div>
+
+                <!-- KPI 4: Max Drawdown -->
+                <div class="bg-white border-l-4 border-red-800 p-5 rounded-xl card-shadow space-y-1">
+                    <span class="text-xs font-bold uppercase text-gray-500">Perte Maximale (Max Drawdown)</span>
+                    <div id="kpiMaxDDB" class="text-2xl font-black text-red-700">-- %</div>
+                    <div class="text-xs font-semibold text-gray-600">
+                        Résilience en période de choc
+                    </div>
+                    <p id="kpiMaxDDA" class="text-[11px] text-gray-500 pt-1 border-t border-gray-100">Stratégie A: -- %</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Trajectory Line Chart -->
+            <div class="lg:col-span-2 bg-white border border-bvmac-borderBeige rounded-xl p-6 card-shadow space-y-4">
+                <div class="flex justify-between items-center border-b border-bvmac-borderBeige pb-3">
+                    <h4 class="font-bold text-bvmac-maroon flex items-center gap-2">
+                        <i class="fa-solid fa-chart-area text-bvmac-gold"></i> Trajectoire de Richesse Totale (2015 - 2025)
+                    </h4>
+                    <span class="text-xs bg-bvmac-beige px-2.5 py-1 rounded border border-bvmac-borderBeige text-bvmac-maroon font-semibold">Montants en FCFA</span>
+                </div>
+                <div class="relative h-80">
+                    <canvas id="trajectoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Metric Comparative Bar Chart -->
+            <div class="lg:col-span-1 bg-white border border-bvmac-borderBeige rounded-xl p-6 card-shadow space-y-4">
+                <div class="flex justify-between items-center border-b border-bvmac-borderBeige pb-3">
+                    <h4 class="font-bold text-bvmac-maroon flex items-center gap-2">
+                        <i class="fa-solid fa-chart-bar text-bvmac-gold"></i> Profil Comparatif
+                    </h4>
+                    <span class="text-xs bg-bvmac-beige px-2.5 py-1 rounded border border-bvmac-borderBeige text-bvmac-maroon font-semibold">Sharpe & Sortino</span>
+                </div>
+                <div class="relative h-80">
+                    <canvas id="metricsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Yearly Backtest Table -->
+        <section class="bg-white border border-bvmac-borderBeige rounded-xl p-6 card-shadow space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-bvmac-borderBeige pb-4 gap-2">
+                <div>
+                    <h3 class="text-lg font-bold text-bvmac-maroon flex items-center gap-2">
+                        <i class="fa-solid fa-table-list text-bvmac-gold"></i> Évolution Chronologique Annuelle Détaillée
+                    </h3>
+                    <p class="text-xs text-gray-500">Comparaison ex-post des flux, cours et accumulation d'actions réinvesties.</p>
+                </div>
+                <button onclick="exportCSV()" class="bg-bvmac-beige border border-bvmac-borderBeige text-bvmac-maroon hover:bg-bvmac-gold hover:text-white text-xs font-bold px-3 py-2 rounded-lg transition flex items-center gap-1">
+                    <i class="fa-solid fa-file-csv"></i> Exporter les Données
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-bvmac-cardBeige text-bvmac-maroon uppercase font-bold border-b border-bvmac-borderBeige">
+                            <th class="p-3">Année</th>
+                            <th class="p-3">Stratégie A (Cash FCFA)</th>
+                            <th class="p-3">Stratégie B (DRIP FCFA)</th>
+                            <th class="p-3">Écart Absolu (FCFA)</th>
+                            <th class="p-3">Surperformance (%)</th>
+                            <th class="p-3">Div. Nets Réinvestis</th>
+                            <th class="p-3">Actions Additionnelles</th>
+                        </tr>
+                    </thead>
+                    <tbody id="backtestTableBody" class="divide-y divide-bvmac-borderBeige text-gray-800 font-medium">
+                        <!-- Filled dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Adding / Editing Stock -->
+    <div id="stockModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white border border-bvmac-borderBeige rounded-xl max-w-md w-full p-6 card-shadow space-y-4">
+            <div class="flex justify-between items-center border-b border-bvmac-borderBeige pb-3">
+                <h4 class="font-bold text-bvmac-maroon text-base flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-bvmac-gold"></i> Ajouter / Modifier une Action
+                </h4>
+                <button onclick="closeStockModal()" class="text-gray-400 hover:text-bvmac-maroon text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <form id="stockForm" onsubmit="event.preventDefault(); saveStock();" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Nom de la Société</label>
+                    <input type="text" id="modalStockName" required placeholder="Ex: SODECOTON" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded px-3 py-2 font-bold focus:ring-1 focus:ring-bvmac-gold">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Secteur d'Activité</label>
+                    <input type="text" id="modalStockSector" required placeholder="Ex: Agro-industrie" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded px-3 py-2 font-bold focus:ring-1 focus:ring-bvmac-gold">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Cours Initial (FCFA)</label>
+                        <input type="number" id="modalStockPrice" required min="100" step="100" value="15000" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded px-3 py-2 font-bold focus:ring-1 focus:ring-bvmac-gold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Dividende Brut (FCFA)</label>
+                        <input type="number" id="modalStockDiv" required min="0" step="10" value="1200" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded px-3 py-2 font-bold focus:ring-1 focus:ring-bvmac-gold">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Croissance Div. Annuelle (%)</label>
+                        <input type="number" id="modalStockGrowth" required step="0.1" value="4.0" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded px-3 py-2 font-bold focus:ring-1 focus:ring-bvmac-gold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Année d'Introduction</label>
+                        <input type="number" id="modalStockYear" required min="2015" max="2025" value="2015" class="w-full bg-bvmac-beige border border-bvmac-borderBeige rounded px-3 py-2 font-bold focus:ring-1 focus:ring-bvmac-gold">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-bvmac-borderBeige">
+                    <button type="button" onclick="closeStockModal()" class="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded hover:bg-gray-200">Annuler</button>
+                    <button type="submit" class="px-4 py-2 gold-gradient text-bvmac-maroon font-bold rounded shadow hover:brightness-105">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Official Institutional Footer -->
+    <footer class="maroon-gradient text-white border-t-4 border-bvmac-gold py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+                <div>
+                    <h4 class="text-base font-bold text-bvmac-gold">Bourse des Valeurs Mobilières de l'Afrique Centrale</h4>
+                    <p class="text-xs text-gray-300">Siège social : Douala, Cameroun | Régulation : COSUMAF</p>
+                </div>
+                
+                <!-- Mandatory Creator Attribution Tag -->
+                <div class="bg-white/10 px-4 py-2 rounded-lg border border-bvmac-gold/40 text-xs text-center md:text-right shadow-sm">
+                    <span class="text-bvmac-gold font-bold uppercase tracking-wider block">Réalisation de FRANC THIERRY ESSANA NOMO</span>
+                    <span class="text-gray-200">Mémoire de Master 2 en Finance & Ingénierie Financière - Backtesting BVMAC</span>
+                </div>
+            </div>
+            
+            <div class="text-center text-[11px] text-gray-400 border-t border-white/10 pt-4">
+                &copy; 2026 BVMAC Simulator Engine. Modèle académique et professionnel d'évaluation des réinvestissements de dividendes en zone CEMAC.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Engine -->
+    <script>
+        // Initial Default BVMAC Stocks Dataset
+        let stocks = [
+            { id: 1, name: "Socapalm", sector: "Agro-industrie", price: 25000, div: 2325, growth: 5.2, startYear: 2015 },
+            { id: 2, name: "Safacam", sector: "Agro-industrie", price: 22000, div: 2200, growth: 4.8, startYear: 2015 },
+            { id: 3, name: "SEMC", sector: "Agroalimentaire", price: 10000, div: 600, growth: 3.5, startYear: 2015 },
+            { id: 4, name: "La Régionale", sector: "Banque / MF", price: 42000, div: 0, growth: 0.0, startYear: 2021 },
+            { id: 5, name: "Bange Bank", sector: "Secteur Bancaire", price: 206000, div: 4830, growth: 2.0, startYear: 2022 },
+            { id: 6, name: "SCG-Ré", sector: "Assurance", price: 12000, div: 510, growth: 6.2, startYear: 2023 }
+        ];
+
+        let trajectoryChartInstance = null;
+        let metricsChartInstance = null;
+        let lastSimulationResults = null;
+
+        window.onload = function() {
+            renderStockTable();
+            runSimulation();
+        };
+
+        function renderStockTable() {
+            const tbody = document.getElementById("stockTableBody");
+            tbody.innerHTML = "";
+            
+            stocks.forEach(s => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-bvmac-beige/50 transition";
+                tr.innerHTML = `
+                    <td class="p-2.5 font-bold text-bvmac-maroon">${s.name}</td>
+                    <td class="p-2.5 text-gray-600">${s.sector}</td>
+                    <td class="p-2.5 font-mono">${s.price.toLocaleString()} FCFA</td>
+                    <td class="p-2.5 font-mono text-emerald-700">${s.div.toLocaleString()} FCFA</td>
+                    <td class="p-2.5 font-mono">+${s.growth}%</td>
+                    <td class="p-2.5"><span class="bg-bvmac-gold/20 text-bvmac-maroon px-2 py-0.5 rounded text-[10px] font-bold">${s.startYear}</span></td>
+                    <td class="p-2.5 text-center">
+                        <button onclick="deleteStock(${s.id})" class="text-red-600 hover:text-red-800 p-1 text-xs">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteStock(id) {
+            if (stocks.length <= 1) {
+                alert("Le portefeuille doit contenir au moins une société cotée.");
+                return;
+            }
+            stocks = stocks.filter(s => s.id !== id);
+            renderStockTable();
+            runSimulation();
+        }
+
+        function openStockModal() {
+            document.getElementById("stockModal").classList.remove("hidden");
+            document.getElementById("stockModal").classList.add("flex");
+        }
+
+        function closeStockModal() {
+            document.getElementById("stockModal").classList.add("hidden");
+            document.getElementById("stockModal").classList.remove("flex");
+        }
+
+        function saveStock() {
+            const name = document.getElementById("modalStockName").value.trim();
+            const sector = document.getElementById("modalStockSector").value.trim();
+            const price = parseFloat(document.getElementById("modalStockPrice").value);
+            const div = parseFloat(document.getElementById("modalStockDiv").value);
+            const growth = parseFloat(document.getElementById("modalStockGrowth").value);
+            const startYear = parseInt(document.getElementById("modalStockYear").value);
+
+            if (!name || !sector || isNaN(price) || isNaN(div)) return;
+
+            const newStock = {
+                id: Date.now(),
+                name,
+                sector,
+                price,
+                div,
+                growth,
+                startYear
+            };
+
+            stocks.push(newStock);
+            renderStockTable();
+            closeStockModal();
+            runSimulation();
+        }
+
+        function resetDefaults() {
+            document.getElementById("capitalInitial").value = 10000000;
+            document.getElementById("tauxIRCM").value = 16.5;
+            document.getElementById("fraisCourtage").value = 1.5;
+            document.getElementById("tauxSansRisque").value = 4.5;
+            document.getElementById("tauxReinvest").value = "1.0";
+            document.getElementById("delaiSlippage").value = "1";
+            
+            stocks = [
+                { id: 1, name: "Socapalm", sector: "Agro-industrie", price: 25000, div: 2325, growth: 5.2, startYear: 2015 },
+                { id: 2, name: "Safacam", sector: "Agro-industrie", price: 22000, div: 2200, growth: 4.8, startYear: 2015 },
+                { id: 3, name: "SEMC", sector: "Agroalimentaire", price: 10000, div: 600, growth: 3.5, startYear: 2015 },
+                { id: 4, name: "La Régionale", sector: "Banque / MF", price: 42000, div: 0, growth: 0.0, startYear: 2021 },
+                { id: 5, name: "Bange Bank", sector: "Secteur Bancaire", price: 206000, div: 4830, growth: 2.0, startYear: 2022 },
+                { id: 6, name: "SCG-Ré", sector: "Assurance", price: 12000, div: 510, growth: 6.2, startYear: 2023 }
+            ];
+
+            renderStockTable();
+            runSimulation();
+        }
+
+        function runSimulation() {
+            const capitalInitial = parseFloat(document.getElementById("capitalInitial").value) || 10000000;
+            const ircmRate = (parseFloat(document.getElementById("tauxIRCM").value) || 16.5) / 100;
+            const feeRate = (parseFloat(document.getElementById("fraisCourtage").value) || 1.5) / 100;
+            const rfRate = (parseFloat(document.getElementById("tauxSansRisque").value) || 4.5) / 100;
+            const reinvestFactor = parseFloat(document.getElementById("tauxReinvest").value) || 1.0;
+            const slippageMonths = parseInt(document.getElementById("delaiSlippage").value) || 1;
+
+            const years = [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+            
+            // Track state for Strategy A (Cash Passive) and Strategy B (DRIP Active)
+            let stratA_cash = 0;
+            let stratA_shares = {}; // stockId -> count
+            
+            let stratB_cash = 0;
+            let stratB_shares = {}; // stockId -> count
+
+            // Initialize 2015 holdings with equal weight (1/N)
+            const active2015 = stocks.filter(s => s.startYear <= 2015);
+            const capitalPerStock = capitalInitial / active2015.length;
+
+            stocks.forEach(s => {
+                if (s.startYear <= 2015) {
+                    // Integer shares minus initial transaction fee
+                    const qtyA = Math.floor(capitalPerStock / (s.price * (1 + feeRate)));
+                    stratA_shares[s.id] = qtyA;
+                    stratA_cash += (capitalPerStock - (qtyA * s.price * (1 + feeRate)));
+
+                    const qtyB = Math.floor(capitalPerStock / (s.price * (1 + feeRate)));
+                    stratB_shares[s.id] = qtyB;
+                    stratB_cash += (capitalPerStock - (qtyB * s.price * (1 + feeRate)));
+                } else {
+                    stratA_shares[s.id] = 0;
+                    stratB_shares[s.id] = 0;
+                }
+            });
+
+            let historyData = [];
+
+            years.forEach((yr, idx) => {
+                // Check if new stocks listed this year, trigger rebalancing with available portfolio capital
+                const newlyListed = stocks.filter(s => s.startYear === yr && yr > 2015);
+                if (newlyListed.length > 0) {
+                    // Include newly listed stock in allocation
+                    newlyListed.forEach(ns => {
+                        // Allocate small allocation from cash/rebalance if available
+                        const price = ns.price * Math.pow(1 + ns.growth/100, yr - ns.startYear);
+                        if (stratB_cash > price * (1 + feeRate)) {
+                            const addQtyB = Math.floor((stratB_cash * 0.4) / (price * (1 + feeRate)));
+                            stratB_shares[ns.id] += addQtyB;
+                            stratB_cash -= addQtyB * price * (1 + feeRate);
+                        }
+                    });
+                }
+
+                // Calculate Dividends collected this year
+                let yrDivNetStratA = 0;
+                let yrDivNetStratB = 0;
+                let totalNewSharesBought = 0;
+
+                stocks.forEach(s => {
+                    if (s.startYear <= yr) {
+                        // Current year dividend and stock price with growth
+                        const currentDivGross = s.div * Math.pow(1 + s.growth/100, yr - s.startYear);
+                        const currentDivNet = currentDivGross * (1 - ircmRate);
+                        const currentPrice = s.price * Math.pow(1 + (s.growth * 0.8)/100, yr - s.startYear);
+
+                        // Strat A Dividend Collection
+                        const divA = stratA_shares[s.id] * currentDivNet;
+                        yrDivNetStratA += divA;
+
+                        // Strat B Dividend Collection
+                        const divB = stratB_shares[s.id] * currentDivNet;
+                        yrDivNetStratB += divB;
+                    }
+                });
+
+                // Apply Strategy A Cash accumulation
+                stratA_cash += yrDivNetStratA;
+
+                // Apply Strategy B Reinvestment (DRIP)
+                const availableForReinvest = (stratB_cash + yrDivNetStratB) * reinvestFactor;
+                const remainingUninvested = (stratB_cash + yrDivNetStratB) * (1 - reinvestFactor);
+                
+                // Distribute available cash across active dividend-paying stocks
+                const activeDividendStocks = stocks.filter(s => s.startYear <= yr && s.div > 0);
+                if (activeDividendStocks.length > 0 && availableForReinvest > 0) {
+                    const poolPerStock = availableForReinvest / activeDividendStocks.length;
+                    let spentB = 0;
+
+                    activeDividendStocks.forEach(s => {
+                        const currentPrice = s.price * Math.pow(1 + (s.growth * 0.8)/100, yr - s.startYear);
+                        // Slippage price adjustment
+                        const adjustedPrice = currentPrice * (1 + (slippageMonths * 0.003)); 
+                        
+                        const newShares = Math.floor(poolPerStock / (adjustedPrice * (1 + feeRate)));
+                        if (newShares > 0) {
+                            stratB_shares[s.id] += newShares;
+                            totalNewSharesBought += newShares;
+                            spentB += newShares * adjustedPrice * (1 + feeRate);
+                        }
+                    });
+
+                    stratB_cash = (availableForReinvest - spentB) + remainingUninvested;
+                } else {
+                    stratB_cash += yrDivNetStratB;
+                }
+
+                // Compute Year End Portfolio Valuations
+                let valA_equities = 0;
+                let valB_equities = 0;
+
+                stocks.forEach(s => {
+                    if (s.startYear <= yr) {
+                        const currentPrice = s.price * Math.pow(1 + (s.growth * 0.8)/100, yr - s.startYear);
+                        valA_equities += stratA_shares[s.id] * currentPrice;
+                        valB_equities += stratB_shares[s.id] * currentPrice;
+                    }
+                });
+
+                const totalWealthA = valA_equities + stratA_cash;
+                const totalWealthB = valB_equities + stratB_cash;
+                const diffAbs = totalWealthB - totalWealthA;
+                const surperf = ((totalWealthB / totalWealthA) - 1) * 100;
+
+                historyData.push({
+                    year: yr,
+                    wealthA: Math.round(totalWealthA),
+                    wealthB: Math.round(totalWealthB),
+                    diffAbs: Math.round(diffAbs),
+                    surperf: surperf.toFixed(2),
+                    divNetB: Math.round(yrDivNetStratB),
+                    newSharesB: totalNewSharesBought
+                });
+            });
+
+            // Calculate Metrics
+            const nYears = years.length;
+            const finalA = historyData[historyData.length - 1].wealthA;
+            const finalB = historyData[historyData.length - 1].wealthB;
+
+            const cagrA = (Math.pow(finalA / capitalInitial, 1 / nYears) - 1) * 100;
+            const cagrB = (Math.pow(finalB / capitalInitial, 1 / nYears) - 1) * 100;
+
+            // Yearly returns for volatility calculations
+            let returnsA = [];
+            let returnsB = [];
+            for (let i = 1; i < historyData.length; i++) {
+                returnsA.push((historyData[i].wealthA / historyData[i-1].wealthA) - 1);
+                returnsB.push((historyData[i].wealthB / historyData[i-1].wealthB) - 1);
+            }
+
+            const meanA = returnsA.reduce((a, b) => a + b, 0) / returnsA.length;
+            const meanB = returnsB.reduce((a, b) => a + b, 0) / returnsB.length;
+
+            const volA = Math.sqrt(returnsA.reduce((sq, n) => sq + Math.pow(n - meanA, 2), 0) / (returnsA.length - 1)) * 100;
+            const volB = Math.sqrt(returnsB.reduce((sq, n) => sq + Math.pow(n - meanB, 2), 0) / (returnsB.length - 1)) * 100;
+
+            const sharpeA = ((cagrA / 100) - rfRate) / (volA / 100);
+            const sharpeB = ((cagrB / 100) - rfRate) / (volB / 100);
+
+            // Downside deviation for Sortino Ratio
+            const downsideA = Math.sqrt(returnsA.filter(r => r < rfRate).reduce((sq, n) => sq + Math.pow(n - rfRate, 2), 0) / returnsA.length) * 100 || 1;
+            const downsideB = Math.sqrt(returnsB.filter(r => r < rfRate).reduce((sq, n) => sq + Math.pow(n - rfRate, 2), 0) / returnsB.length) * 100 || 1;
+
+            const sortinoA = ((cagrA / 100) - rfRate) / (downsideA / 100);
+            const sortinoB = ((cagrB / 100) - rfRate) / (downsideB / 100);
+
+            // Max Drawdown calculation
+            function calcMaxDD(historyKey) {
+                let maxDD = 0;
+                let peak = historyData[0][historyKey];
+                historyData.forEach(h => {
+                    if (h[historyKey] > peak) peak = h[historyKey];
+                    const dd = (peak - h[historyKey]) / peak;
+                    if (dd > maxDD) maxDD = dd;
+                });
+                return maxDD * 100;
+            }
+
+            const maxDDA = calcMaxDD('wealthA');
+            const maxDDB = calcMaxDD('wealthB');
+
+            lastSimulationResults = {
+                historyData,
+                finalA,
+                finalB,
+                cagrA,
+                cagrB,
+                volA,
+                volB,
+                sharpeA,
+                sharpeB,
+                sortinoA,
+                sortinoB,
+                maxDDA,
+                maxDDB
+            };
+
+            updateDashboardUI(lastSimulationResults);
+        }
+
+        function updateDashboardUI(res) {
+            // Update KPIs
+            document.getElementById("kpiPatrimoineB").innerText = res.finalB.toLocaleString() + " FCFA";
+            document.getElementById("kpiPatrimoineA").innerText = "Stratégie A (Cash): " + res.finalA.toLocaleString() + " FCFA";
+            
+            const surperfPct = (((res.finalB / res.finalA) - 1) * 100).toFixed(2);
+            document.getElementById("kpiSurperf").innerText = "+" + surperfPct + "%";
+
+            document.getElementById("kpiCAGRB").innerText = res.cagrB.toFixed(2) + " %";
+            document.getElementById("kpiCAGRA").innerText = "Stratégie A: " + res.cagrA.toFixed(2) + " %";
+            document.getElementById("kpiEcartCAGR").innerText = "+" + (res.cagrB - res.cagrA).toFixed(2) + " pts";
+
+            document.getElementById("kpiSharpeB").innerText = res.sharpeB.toFixed(2);
+            document.getElementById("kpiSharpeA").innerText = "Stratégie A: " + res.sharpeA.toFixed(2);
+
+            document.getElementById("kpiMaxDDB").innerText = "-" + res.maxDDB.toFixed(2) + " %";
+            document.getElementById("kpiMaxDDA").innerText = "Stratégie A: -" + res.maxDDA.toFixed(2) + " %";
+
+            // Update Backtest Table
+            const tbody = document.getElementById("backtestTableBody");
+            tbody.innerHTML = "";
+            res.historyData.forEach(h => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-bvmac-beige/50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-bvmac-maroon">${h.year}</td>
+                    <td class="p-3 font-mono">${h.wealthA.toLocaleString()} FCFA</td>
+                    <td class="p-3 font-mono font-bold text-bvmac-maroon">${h.wealthB.toLocaleString()} FCFA</td>
+                    <td class="p-3 font-mono text-emerald-700 font-bold">+${h.diffAbs.toLocaleString()} FCFA</td>
+                    <td class="p-3 font-bold"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[11px]">+${h.surperf}%</span></td>
+                    <td class="p-3 font-mono text-gray-600">${h.divNetB.toLocaleString()} FCFA</td>
+                    <td class="p-3 font-mono text-center font-bold text-bvmac-goldDark">+${h.newSharesB}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update Trajectory Line Chart
+            const ctxLine = document.getElementById("trajectoryChart").getContext("2d");
+            if (trajectoryChartInstance) trajectoryChartInstance.destroy();
+
+            trajectoryChartInstance = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: res.historyData.map(h => h.year),
+                    datasets: [
+                        {
+                            label: 'Stratégie B (Réinvestissement DRIP)',
+                            data: res.historyData.map(h => h.wealthB),
+                            borderColor: '#D4AF37',
+                            backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Stratégie A (Cash Conservateur)',
+                            data: res.historyData.map(h => h.wealthA),
+                            borderColor: '#4A2E2B',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) { return (value / 1000000).toFixed(1) + 'M FCFA'; }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Update Comparative Metrics Bar Chart
+            const ctxBar = document.getElementById("metricsChart").getContext("2d");
+            if (metricsChartInstance) metricsChartInstance.destroy();
+
+            metricsChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Ratio de Sharpe', 'Ratio de Sortino'],
+                    datasets: [
+                        {
+                            label: 'Stratégie B (DRIP)',
+                            data: [res.sharpeB.toFixed(2), res.sortinoB.toFixed(2)],
+                            backgroundColor: '#D4AF37'
+                        },
+                        {
+                            label: 'Stratégie A (Cash)',
+                            data: [res.sharpeA.toFixed(2), res.sortinoA.toFixed(2)],
+                            backgroundColor: '#4A2E2B'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function exportCSV() {
+            if (!lastSimulationResults) return;
+            let csvContent = "data:text/csv;charset=utf-8,Annee,Strategie_A_FCFA,Strategie_B_FCFA,Ecart_Absolu_FCFA,Surperformance_Pct,Dividendes_Nets_B_FCFA,Actions_Nouvelles_B\n";
+            
+            lastSimulationResults.historyData.forEach(h => {
+                csvContent += `${h.year},${h.wealthA},${h.wealthB},${h.diffAbs},${h.surperf},${h.divNetB},${h.newSharesB}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Backtest_BVMAC_Dividendes.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
