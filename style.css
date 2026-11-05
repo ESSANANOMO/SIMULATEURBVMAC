@@ -1,188 +1,168 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#4a2e2b">
-  <meta name="description" content="Simulateur pédagogique de backtesting BVMAC : comparez conservation et réinvestissement des dividendes de 2015 à 2025.">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Simulateur BVMAC — Réinvestissement des dividendes">
-  <meta property="og:description" content="Comparez les stratégies de dividendes sur le marché BVMAC avec ce simulateur pédagogique.">
-  <meta property="og:image" content="https://ESSANANOMO.github.io/SIMULATEURBVMAC/icon.svg">
-  <meta property="og:url" content="https://ESSANANOMO.github.io/SIMULATEURBVMAC/">
-  <link rel="canonical" href="https://ESSANANOMO.github.io/SIMULATEURBVMAC/">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://cdn.tailwindcss.com">
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <title>Simulateur BVMAC — Réinvestissement des dividendes</title>
+/* Simulateur BVMAC — feuille de styles (CSS uniquement). */
+* { box-sizing: border-box; }
 
-  <script defer src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            bvmac: {
-              beige: '#FDFBF7', cardBeige: '#F5EFEB', borderBeige: '#EFE6DD',
-              gold: '#D4AF37', goldHover: '#B8860B', goldDark: '#996515',
-              maroon: '#4A2E2B', maroonDark: '#2C1614', maroonLight: '#6B423D',
-              textDark: '#2C2C2C'
-            }
-          }
-        }
-      }
-    };
-  </script>
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Simulateur BVMAC Dividendes",
-      "applicationCategory": "FinanceApplication",
-      "operatingSystem": "Web",
-      "description": "Simulateur pédagogique de backtesting et de réinvestissement des dividendes BVMAC.",
-      "author": { "@type": "Person", "name": "FRANC THIERRY ESSANA NOMO" },
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "XAF" }
-    }
-  </script>
-  <link rel="stylesheet" href="style.css">
-  <script defer src="script.js"></script>
-</head>
-<body class="min-h-screen flex flex-col">
-  <header class="maroon-gradient text-white border-b-4 border-bvmac-gold shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-bvmac-gold flex items-center justify-center text-bvmac-maroon font-bold text-xl border-2 border-white">BVMAC</div>
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold">BOURSE DES VALEURS MOBILIÈRES DE L'AFRIQUE CENTRALE</h1>
-          <p class="text-xs text-bvmac-gold uppercase tracking-widest">Plateforme Régionale de Cotation — Douala, CEMAC</p>
-        </div>
-      </div>
-      <div class="flex gap-2">
-        <button id="themeToggle" class="touch-btn" type="button" aria-label="Activer le mode sombre" title="Mode sombre">
-          <i class="fa-solid fa-moon" aria-hidden="true"></i>
-        </button>
-        <button id="menuToggle" class="touch-btn md:hidden" type="button" aria-controls="controlsPanel" aria-expanded="false" aria-label="Afficher les paramètres">
-          <i class="fa-solid fa-bars" aria-hidden="true"></i>
-        </button>
-      </div>
-    </div>
-  </header>
+:root {
+  color-scheme: light;
+  --page: #fdfbf7;
+  --panel: #ffffff;
+  --card: #f5efeb;
+  --border: #efe6dd;
+  --text: #2c2c2c;
+  --muted: #667085;
+  --input: #fdfbf7;
+  --row-hover: #faf5ee;
+  --gold: #d4af37;
+  --maroon: #4a2e2b;
+  --shadow: rgba(74, 46, 43, .08);
+}
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow space-y-8">
-    <section class="intro-card rounded-xl p-6 sm:p-8 card-shadow">
-      <div class="badge"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Modélisation financière et backtesting (2015–2025)</div>
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-bvmac-maroon mt-4">Simulateur de réinvestissement automatique des dividendes à la BVMAC</h2>
-      <p class="muted mt-3">Comparez la conservation des dividendes en espèces (stratégie A) et leur réinvestissement automatique (stratégie B/DRIP). Les cours et rendements sont des hypothèses de modélisation, et non des données officielles en temps réel ni un conseil en investissement.</p>
-    </section>
+html { scroll-behavior: smooth; }
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition: background-color .3s ease, color .3s ease;
+}
+body.dark {
+  color-scheme: dark;
+  --page: #111318;
+  --panel: #1b1d22;
+  --card: #24262c;
+  --border: #3b3d43;
+  --text: #f4efe7;
+  --muted: #b3b0aa;
+  --input: #25272d;
+  --row-hover: #2c2e34;
+  --gold: #e6c45c;
+  --maroon: #e7c96a;
+  --shadow: rgba(0, 0, 0, .28);
+}
 
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <aside id="controlsPanel" class="panel rounded-xl p-6 card-shadow space-y-5">
-        <div class="flex justify-between items-center border-b pb-3">
-          <h2 class="text-lg font-bold text-bvmac-maroon"><i class="fa-solid fa-sliders text-bvmac-gold" aria-hidden="true"></i> Paramètres</h2>
-          <button id="resetBtn" class="text-sm underline" type="button">Réinitialiser</button>
-        </div>
-        <form id="simulatorForm" class="space-y-4">
-          <label class="field-label" for="capitalInitial">Capital initial investi (FCFA)
-            <input id="capitalInitial" type="number" value="10000000" min="1" max="1000000000000" step="100000" required>
-          </label>
-          <label class="field-label" for="tauxIRCM">Taux IRCM (%)
-            <input id="tauxIRCM" type="number" value="16.5" min="0" max="100" step="0.1" required>
-          </label>
-          <label class="field-label" for="fraisCourtage">Frais de courtage SGI (%)
-            <input id="fraisCourtage" type="number" value="1.5" min="0" max="100" step="0.05" required>
-          </label>
-          <label class="field-label" for="tauxSansRisque">Taux sans risque BTA (%)
-            <input id="tauxSansRisque" type="number" value="4.5" min="0" max="100" step="0.1" required>
-          </label>
-          <label class="field-label" for="tauxReinvest">Taux de réinvestissement
-            <select id="tauxReinvest">
-              <option value="1" selected>100 % — DRIP total</option>
-              <option value="0.75">75 %</option>
-              <option value="0.5">50 %</option>
-              <option value="0.25">25 %</option>
-            </select>
-          </label>
-          <label class="field-label" for="delaiSlippage">Délai / slippage
-            <select id="delaiSlippage">
-              <option value="1" selected>1 mois</option>
-              <option value="2">2 mois</option>
-              <option value="3">3 mois</option>
-            </select>
-          </label>
-          <button type="submit" class="action-btn gold-gradient w-full"><i class="fa-solid fa-play" aria-hidden="true"></i> Lancer la simulation</button>
-          <button id="exportConfigBtn" type="button" class="action-btn secondary-btn w-full"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> Exporter la configuration JSON</button>
-          <button id="shareBtn" type="button" class="action-btn secondary-btn w-full"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Copier le lien de partage</button>
-          <p id="formMessage" class="text-sm" role="status" aria-live="polite"></p>
-        </form>
-      </aside>
+.gold-gradient { background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); }
+.maroon-gradient { background: linear-gradient(135deg, #4a2e2b 0%, #2c1614 100%); }
+.card-shadow { box-shadow: 0 4px 18px var(--shadow); }
+body, .panel, .kpi, .intro-card, input, select, dialog {
+  transition: background-color .3s ease, color .3s ease, border-color .3s ease;
+}
 
-      <section class="panel rounded-xl p-6 card-shadow lg:col-span-2">
-        <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
-          <div>
-            <h2 class="text-lg font-bold text-bvmac-maroon"><i class="fa-solid fa-building-columns text-bvmac-gold" aria-hidden="true"></i> Sociétés du portefeuille</h2>
-            <p class="muted text-sm">Les valeurs sont des hypothèses modifiables.</p>
-          </div>
-          <button id="addStockBtn" class="action-btn maroon-gradient text-white" type="button"><i class="fa-solid fa-plus" aria-hidden="true"></i> Ajouter une action</button>
-        </div>
-        <div class="table-scroll mt-4">
-          <table class="data-table">
-            <thead><tr><th>Société</th><th>Secteur</th><th>Cours initial</th><th>Dividende brut</th><th>Croissance</th><th>Année</th><th>Retirer</th></tr></thead>
-            <tbody id="stockTableBody"></tbody>
-          </table>
-        </div>
-      </section>
-    </section>
+.panel, .kpi { background: var(--panel); border-color: var(--border); color: var(--text); }
+.intro-card { background: var(--card); border: 1px solid var(--border); }
+.muted { color: var(--muted); }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .4rem .8rem;
+  border: 1px solid rgba(212, 175, 55, .4);
+  border-radius: 999px;
+  background: rgba(212, 175, 55, .18);
+  color: #4a2e2b;
+  font-size: .75rem;
+  font-weight: 700;
+}
+.panel-title { color: #4a2e2b; font-size: 1.05rem; font-weight: 750; }
+body.dark .panel-title, body.dark .badge { color: #f1d77d; }
+body.dark .text-gray-700,
+body.dark .text-gray-800,
+body.dark .text-gray-600,
+body.dark .text-gray-500 { color: #cbc6bd !important; }
+body.dark .text-bvmac-maroon { color: #e7c96a !important; }
+body.dark .bg-white,
+body.dark .bg-bvmac-beige,
+body.dark .bg-bvmac-cardBeige { background: var(--card) !important; }
+body.dark .border-bvmac-borderBeige,
+body.dark .border-gray-100 { border-color: var(--border) !important; }
 
-    <section>
-      <h2 class="text-xl font-extrabold text-bvmac-maroon mb-4"><i class="fa-solid fa-square-poll-vertical text-bvmac-gold" aria-hidden="true"></i> Indicateurs clés (2015–2025)</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <article class="kpi border-l-4 border-bvmac-gold"><span>Patrimoine final DRIP</span><strong id="kpiPatrimoineB">—</strong><small id="kpiPatrimoineA">Stratégie A : —</small><small>Surperformance : <b id="kpiSurperf">—</b></small></article>
-        <article class="kpi border-l-4 border-bvmac-maroon"><span>CAGR annualisé</span><strong id="kpiCAGRB">—</strong><small id="kpiCAGRA">Stratégie A : —</small><small>Écart : <b id="kpiEcartCAGR">—</b></small></article>
-        <article class="kpi border-l-4 border-bvmac-gold"><span>Ratio de Sharpe</span><strong id="kpiSharpeB">—</strong><small id="kpiSharpeA">Stratégie A : —</small></article>
-        <article class="kpi border-l-4 border-red-700"><span>Perte maximale (drawdown)</span><strong id="kpiMaxDDB">—</strong><small id="kpiMaxDDA">Stratégie A : —</small></article>
-      </div>
-    </section>
+.field-label {
+  display: block;
+  margin-bottom: .2rem;
+  color: var(--text);
+  font-size: .875rem;
+  font-weight: 650;
+}
+.field-label input,
+.field-label select {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: .4rem;
+  padding: .6rem .75rem;
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  background: var(--input);
+  color: var(--text);
+  font: inherit;
+}
+.field-label input:focus,
+.field-label select:focus { outline: 2px solid rgba(212, 175, 55, .7); outline-offset: 1px; }
+input[aria-invalid="true"] { border-color: #dc2626 !important; }
 
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <article class="panel rounded-xl p-5 card-shadow lg:col-span-2"><h2 class="panel-title">Trajectoire de richesse (FCFA)</h2><div class="chart-wrap"><canvas id="trajectoryChart" aria-label="Graphique de trajectoire de richesse"></canvas></div></article>
-      <article class="panel rounded-xl p-5 card-shadow"><h2 class="panel-title">Profil comparatif Sharpe / Sortino</h2><div class="chart-wrap"><canvas id="metricsChart" aria-label="Comparaison des ratios de risque"></canvas></div></article>
-    </section>
+.action-btn,
+.touch-btn {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .65rem .9rem;
+  border: 0;
+  border-radius: .55rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter .2s ease, transform .2s ease, background-color .3s ease, color .3s ease;
+}
+.action-btn:hover, .touch-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.action-btn:focus-visible, .touch-btn:focus-visible, button:focus-visible { outline: 3px solid #d4af37; outline-offset: 2px; }
+.touch-btn { width: 44px; padding: 0; border: 1px solid rgba(255,255,255,.24); background: rgba(255,255,255,.13); color: #fff; }
+.secondary-btn { border: 1px solid var(--border); background: var(--card); color: var(--text); }
 
-    <section class="panel rounded-xl p-5 card-shadow">
-      <div class="flex flex-wrap justify-between items-center gap-3 border-b pb-3">
-        <div><h2 class="panel-title">Évolution chronologique annuelle</h2><p class="muted text-sm">Comparaison des stratégies de conservation et de réinvestissement.</p></div>
-        <button id="exportCsvBtn" type="button" class="action-btn secondary-btn"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exporter CSV</button>
-      </div>
-      <div class="table-scroll mt-4">
-        <table class="data-table">
-          <thead><tr><th>Année</th><th>Stratégie A (FCFA)</th><th>Stratégie B (FCFA)</th><th>Écart (FCFA)</th><th>Surperformance</th><th>Dividendes nets B</th><th>Actions achetées</th></tr></thead>
-          <tbody id="backtestTableBody"></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+.kpi { padding: 1.1rem; border-radius: .75rem; box-shadow: 0 4px 18px var(--shadow); }
+.kpi span, .kpi small { display: block; color: var(--muted); font-size: .78rem; }
+.kpi strong { display: block; margin: .35rem 0; color: #4a2e2b; font-size: 1.4rem; overflow-wrap: anywhere; }
+body.dark .kpi strong { color: #f1d77d; }
 
-  <dialog id="stockDialog" class="stock-dialog">
-    <form id="stockForm">
-      <h2 class="panel-title mb-4">Ajouter une action</h2>
-      <label class="field-label" for="stockName">Société<input id="stockName" required maxlength="60"></label>
-      <label class="field-label" for="stockSector">Secteur<input id="stockSector" required maxlength="60"></label>
-      <label class="field-label" for="stockPrice">Cours initial (FCFA)<input id="stockPrice" type="number" min="1" step="1" required value="15000"></label>
-      <label class="field-label" for="stockDiv">Dividende brut (FCFA)<input id="stockDiv" type="number" min="0" step="1" required value="1200"></label>
-      <label class="field-label" for="stockGrowth">Croissance annuelle (%)<input id="stockGrowth" type="number" min="-99" max="100" step="0.1" required value="4"></label>
-      <label class="field-label" for="stockYear">Année d'introduction<input id="stockYear" type="number" min="2015" max="2025" required value="2015"></label>
-      <div class="flex gap-2 mt-4"><button class="action-btn gold-gradient" type="submit">Ajouter</button><button id="cancelStockBtn" class="action-btn secondary-btn" type="button">Annuler</button></div>
-    </form>
-  </dialog>
+.table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: .5rem; }
+.data-table { width: 100%; min-width: 720px; border-collapse: collapse; text-align: left; font-size: .78rem; }
+.data-table th { background: var(--card); color: #4a2e2b; text-transform: uppercase; font-size: .68rem; letter-spacing: .03em; }
+body.dark .data-table th { color: #f1d77d; }
+.data-table th, .data-table td { padding: .75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.data-table tbody tr:hover { background: var(--row-hover); }
 
-  <footer class="maroon-gradient text-white mt-10 py-6 text-center text-sm">
-    <p class="text-bvmac-gold font-bold">FRANC THIERRY ESSANA NOMO</p>
-    <p>Mémoire de Master 2 en Finance & Ingénierie Financière — Simulateur BVMAC</p>
-  </footer>
-</body>
-</html>
+.chart-wrap { position: relative; width: 100%; max-width: 100%; height: 320px; }
+.stock-dialog {
+  width: min(92vw, 460px);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
+}
+.stock-dialog::backdrop { background: rgba(0, 0, 0, .55); backdrop-filter: blur(3px); }
+#controlsPanel { scroll-margin-top: 1rem; }
+
+@media (max-width: 767px) {
+  #controlsPanel { display: none; }
+  #controlsPanel.mobile-open { display: block; }
+  .chart-wrap { height: 270px; }
+  .action-btn { min-height: 46px; }
+  main { padding-top: 1rem; }
+  .kpi strong { font-size: 1.2rem; }
+  header h1 { font-size: 1rem; line-height: 1.35; }
+}
+@media (min-width: 768px) { #controlsPanel { display: block !important; } }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--card); }
+::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #b8860b; }
