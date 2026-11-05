@@ -18,10 +18,10 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <title>Simulateur BVMAC — Réinvestissement des dividendes</title>
 
-  <!-- Configuration définie AVANT le CDN. Le CDN Tailwind doit être synchrone ici. -->
+  <!-- Configuration Tailwind définie avant le CDN; charger Tailwind sans defer. -->
   <script>
-    tailwind = window.tailwind || {};
-    tailwind.config = {
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
       theme: {
         extend: {
           colors: {
@@ -40,16 +40,16 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Simulateur BVMAC Dividendes",
-      "applicationCategory": "FinanceApplication",
-      "operatingSystem": "Web",
-      "description": "Simulateur pédagogique de backtesting et de réinvestissement des dividendes BVMAC.",
-      "author": { "@type": "Person", "name": "FRANC THIERRY ESSANA NOMO" },
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "XAF" }
-    }
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Simulateur BVMAC Dividendes",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web",
+    "description": "Simulateur pédagogique de backtesting et de réinvestissement des dividendes BVMAC.",
+    "author": { "@type": "Person", "name": "FRANC THIERRY ESSANA NOMO" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "XAF" }
+  }
   </script>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -88,12 +88,8 @@
           <label class="field-label" for="tauxIRCM">Taux IRCM (%)<input id="tauxIRCM" type="number" value="16.5" min="0" max="100" step="0.1" required></label>
           <label class="field-label" for="fraisCourtage">Frais de courtage SGI (%)<input id="fraisCourtage" type="number" value="1.5" min="0" max="100" step="0.05" required></label>
           <label class="field-label" for="tauxSansRisque">Taux sans risque BTA (%)<input id="tauxSansRisque" type="number" value="4.5" min="0" max="100" step="0.1" required></label>
-          <label class="field-label" for="tauxReinvest">Taux de réinvestissement
-            <select id="tauxReinvest"><option value="1" selected>100 % — DRIP total</option><option value="0.75">75 %</option><option value="0.5">50 %</option><option value="0.25">25 %</option></select>
-          </label>
-          <label class="field-label" for="delaiSlippage">Délai / slippage
-            <select id="delaiSlippage"><option value="1" selected>1 mois</option><option value="2">2 mois</option><option value="3">3 mois</option></select>
-          </label>
+          <label class="field-label" for="tauxReinvest">Taux de réinvestissement<select id="tauxReinvest"><option value="1" selected>100 % — DRIP total</option><option value="0.75">75 %</option><option value="0.5">50 %</option><option value="0.25">25 %</option></select></label>
+          <label class="field-label" for="delaiSlippage">Délai / slippage<select id="delaiSlippage"><option value="1" selected>1 mois</option><option value="2">2 mois</option><option value="3">3 mois</option></select></label>
           <button type="submit" class="action-btn gold-gradient w-full"><i class="fa-solid fa-play" aria-hidden="true"></i> Lancer la simulation</button>
           <button id="exportConfigBtn" type="button" class="action-btn secondary-btn w-full"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> Exporter la configuration JSON</button>
           <button id="shareBtn" type="button" class="action-btn secondary-btn w-full"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Copier le lien de partage</button>
